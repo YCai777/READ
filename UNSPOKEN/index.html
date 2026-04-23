@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Unspoken</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap"
+		rel="stylesheet"
+	/>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+	<div class="intro" id="intro" aria-hidden="true">
+		<div class="intro__lottie" id="intro-lottie"></div>
+	</div>
+
+	<main class="content">
+		<section class="section--hero" id="section-1">
+			<header class="hero__meta">
+				<h1 class="main-title">UNSPOKEN</h1>
+				<p class="subtitle">70%</p>
+				<p class="hero__dek">We rely on signals beyond words. What happens when they disappear?</p>
+			</header>
+
+			<article class="essay" id="text-display" aria-label="Essay Text">
+				<p class="body-text text-block">Research suggests that only about 30% of communication involves actual words. Around 70-80% relies on nonverbal signals such as expression, gesture, and intonation (Hull, 2016). Even if the exact percentage is debated, the conclusion is clear: words alone are never enough.</p>
+				<p class="body-text text-block">Yet in digital communication, words often become the primary channel. The majority of meaning must now travel through a narrow textual corridor.</p>
+			</article>
+		</section>
+	</main>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js" defer></script>
+	<script src="disappear.js" defer></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			if (typeof initDisappearInteraction === "function") {
+				initDisappearInteraction();
+			}
+		});
+	</script>
+</body>
+</html>

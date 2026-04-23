@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unspoken</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      :root {
+        --content-sidebar-clearance: 340px;
+      }
+
+      .content {
+        width: 100%;
+      }
+
+      .content__section {
+        min-height: 100vh;
+        padding: 0;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .content__panel {
+        width: max(0px, calc(100vw - var(--content-sidebar-clearance)));
+        max-width: max(0px, calc(100vw - var(--content-sidebar-clearance)));
+        min-height: 100vh;
+      }
+
+      .content__iframe {
+        width: 100%;
+        height: 100vh;
+        border: none;
+        display: block;
+        pointer-events: auto;
+      }
+
+      .content__placeholder {
+        background: #f0ece4;
+      }
+
+      .content__placeholder-inner {
+        min-height: 100vh;
+        width: 100%;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        text-align: center;
+        font-family: "Josefin Sans", sans-serif;
+        color: #05080f;
+        text-transform: uppercase;
+      }
+
+      .content__placeholder-number {
+        font-size: clamp(72px, 16vw, 180px);
+        font-weight: 300;
+        line-height: 0.9;
+        letter-spacing: 0.04em;
+      }
+
+      .content__placeholder-title {
+        font-size: clamp(28px, 4vw, 56px);
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0.08em;
+      }
+
+    </style>
+  </head>
+  <body class="intro-active">
+    <div class="intro" id="intro" aria-label="Intro animation">
+      <div class="intro__lottie" id="lottieIntro"></div>
+    </div>
+
+    <!-- Floating Sidebar -->
+    <aside class="sidebar" aria-label="Sidebar navigation">
+      <h1 class="sidebar__title">
+        <span>READ</span>
+        <span>EACH</span>
+        <span>OTHER</span>
+      </h1>
+
+      <nav class="sidebar__nav">
+        <ol class="sidebar__list">
+          <li
+            class="sidebar__item sidebar__item--active"
+            data-target="section-unspoken"
+          >
+            <span class="sidebar__number">1</span>
+            <span class="sidebar__label">UNSPOKEN</span>
+          </li>
+          <li class="sidebar__item" data-target="section-in-the-body">
+            <span class="sidebar__number">2</span>
+            <span class="sidebar__label">IN THE BODY</span>
+          </li>
+          <li class="sidebar__item" data-target="section-compressed">
+            <span class="sidebar__number">3</span>
+            <span class="sidebar__label">COMPRESSED</span>
+          </li>
+          <li class="sidebar__item" data-target="section-distorted">
+            <span class="sidebar__number">4</span>
+            <span class="sidebar__label">DISTORTED</span>
+          </li>
+          <li class="sidebar__item" data-target="section-almost-there">
+            <span class="sidebar__number">5</span>
+            <span class="sidebar__label">ALMOST THERE</span>
+          </li>
+          <li class="sidebar__item" data-target="section-whats-next">
+            <span class="sidebar__number">&infin;</span>
+            <span class="sidebar__label">WHAT'S NEXT</span>
+          </li>
+        </ol>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <section
+        class="content__section"
+        id="section-unspoken"
+        data-sidebar-index="0"
+      >
+        <div class="content__panel">
+          <iframe
+            class="content__iframe"
+            src="UNSPOKEN/index.html"
+            title="UNSPOKEN"
+            scrolling="no"
+          ></iframe>
+        </div>
+      </section>
+
+      <section
+        class="content__section"
+        id="section-in-the-body"
+        data-sidebar-index="1"
+      >
+        <div class="content__panel">
+          <iframe
+            class="content__iframe"
+            src="IN%20THE%20BODY/index.html"
+            title="IN THE BODY"
+            scrolling="no"
+          ></iframe>
+        </div>
+      </section>
+
+      <section
+        class="content__section content__placeholder"
+        id="section-compressed"
+        data-sidebar-index="2"
+      >
+        <div class="content__panel">
+          <div class="content__placeholder-inner">
+            <div class="content__placeholder-number">3</div>
+            <div class="content__placeholder-title">COMPRESSED</div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="content__section content__placeholder"
+        id="section-distorted"
+        data-sidebar-index="3"
+      >
+        <div class="content__panel">
+          <div class="content__placeholder-inner">
+            <div class="content__placeholder-number">4</div>
+            <div class="content__placeholder-title">DISTORTED</div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="content__section"
+        id="section-almost-there"
+        data-sidebar-index="4"
+      >
+        <div class="content__panel">
+          <iframe
+            class="content__iframe"
+            src="ALMOST%20THERE/index.html"
+            title="ALMOST THERE"
+            scrolling="no"
+          ></iframe>
+        </div>
+      </section>
+
+      <section
+        class="content__section content__placeholder"
+        id="section-whats-next"
+        data-sidebar-index="5"
+      >
+        <div class="content__panel">
+          <div class="content__placeholder-inner">
+            <div class="content__placeholder-number">&infin;</div>
+            <div class="content__placeholder-title">WHAT'S NEXT</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+    <script src="first/sadness.js"></script>
+    <script src="intro.js" defer></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const NARROW_SCREEN_WIDTH = 900;
+        const sidebarItems = Array.from(
+          document.querySelectorAll(".sidebar__item")
+        );
+        const sections = Array.from(document.querySelectorAll(".content__section"));
+        const visibleSections = new Map();
+
+        if (!sidebarItems.length || !sections.length) {
+          return;
+        }
+
+        const setActiveItem = (index) => {
+          sidebarItems.forEach((item, itemIndex) => {
+            item.classList.toggle("sidebar__item--active", itemIndex === index);
+          });
+        };
+
+        const updateContentLayout = () => {
+          // Match intro.js: only narrow portrait screens use the compact layout.
+          const isPortraitNarrowScreen =
+            window.innerWidth <= NARROW_SCREEN_WIDTH &&
+            window.innerHeight > window.innerWidth;
+
+          let sidebarClearance = 340;
+
+          if (window.innerWidth <= 600) {
+            sidebarClearance = isPortraitNarrowScreen ? 96 : 160;
+          } else if (window.innerWidth <= 900) {
+            sidebarClearance = 200;
+          }
+
+          document.documentElement.style.setProperty(
+            "--content-sidebar-clearance",
+            `${sidebarClearance}px`
+          );
+        };
+
+        updateContentLayout();
+        window.addEventListener("resize", updateContentLayout);
+
+        document
+          .querySelector(".sidebar__list")
+          .addEventListener("click", (event) => {
+            const item = event.target.closest(".sidebar__item");
+
+            if (!item) {
+              return;
+            }
+
+            const targetId = item.dataset.target;
+            const targetSection = document.getElementById(targetId);
+
+            if (!targetSection) {
+              return;
+            }
+
+            const targetIndex = Number(targetSection.dataset.sidebarIndex);
+            setActiveItem(targetIndex);
+            targetSection.scrollIntoView({ behavior: "smooth" });
+          });
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                visibleSections.set(entry.target.id, entry.intersectionRatio);
+              } else {
+                visibleSections.delete(entry.target.id);
+              }
+            });
+
+            let activeSection = null;
+            let activeRatio = 0;
+
+            visibleSections.forEach((ratio, id) => {
+              if (ratio >= activeRatio) {
+                activeRatio = ratio;
+                activeSection = document.getElementById(id);
+              }
+            });
+
+            if (!activeSection) {
+              return;
+            }
+
+            setActiveItem(Number(activeSection.dataset.sidebarIndex));
+          },
+          { threshold: 0.5 }
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      });
+    </script>
+  </body>
+</html>

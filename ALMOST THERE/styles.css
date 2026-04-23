@@ -1,0 +1,206 @@
+:root {
+  --bg: #f5efed;
+  --text: #05080f;
+  --muted: rgba(5, 8, 15, 0.4);
+  --page-gap: 1rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Josefin Sans", sans-serif;
+  overflow: hidden;
+}
+
+.layout {
+  display: grid;
+  width: 100vw;
+  height: 100vh;
+  gap: var(--page-gap);
+  padding: var(--page-gap);
+  grid-template-columns: var(--col-a, 1fr) var(--col-b, 1fr) var(--col-c, 1fr);
+  grid-template-rows: var(--row-a, 1fr) var(--row-b, 1fr);
+  transition: grid-template-columns 120ms ease, grid-template-rows 120ms ease;
+}
+
+.panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1rem, 2vw, 2rem);
+  overflow: hidden;
+  transition: opacity 160ms ease;
+}
+
+.panel[data-panel="0"] {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+}
+
+.panel[data-panel="1"] {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+}
+
+.panel[data-panel="2"] {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+}
+
+.panel-header,
+.panel-body,
+.detail {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.eyebrow,
+.subtitle,
+.title-trigger {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eyebrow,
+.subtitle {
+  color: var(--muted);
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+}
+
+.title-trigger {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.main-title {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 144pt);
+  font-weight: 700;
+  line-height: 0.88;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: font-size 120ms ease, transform 120ms ease, opacity 120ms ease;
+}
+
+.main-title .title-trigger {
+  display: block;
+  width: 100%;
+}
+
+.subtitle {
+  font-size: clamp(0.8rem, 1.1vw, 1rem);
+  font-weight: 400;
+  line-height: 1.3;
+  transition: opacity 140ms ease, transform 140ms ease, color 140ms ease, font-size 120ms ease;
+}
+
+.detail {
+  align-content: start;
+  max-width: 60ch;
+  font-size: clamp(0.9rem, 0.95vw, 1rem);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--text);
+  opacity: 0;
+  transform: translateY(0.75rem);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.detail p {
+  margin: 0;
+}
+
+.panel.active .main-title {
+  font-size: clamp(2.4rem, 9vw, 170pt);
+  transform: scale(1.01);
+}
+
+.panel.active .subtitle {
+  color: var(--text);
+  font-size: clamp(0.95rem, 1.4vw, 1.3rem);
+}
+
+.panel.active .detail {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.layout.has-focus .panel {
+  opacity: 0.88;
+}
+
+.layout.has-focus .panel:not(.focused) {
+  justify-content: flex-start;
+}
+
+.layout.has-focus .panel:not(.focused) .main-title {
+  font-size: clamp(1.5rem, 4.8vw, 72pt);
+  opacity: 0.72;
+}
+
+.layout.has-focus .panel:not(.focused) .subtitle,
+.layout.has-focus .panel:not(.focused) .detail {
+  opacity: 0;
+  transform: translateY(0.5rem);
+  pointer-events: none;
+}
+
+.layout.has-focus .panel.focused {
+  opacity: 1;
+}
+
+.layout.has-focus .panel.focused .main-title {
+  font-size: clamp(2.8rem, 10vw, 180pt);
+}
+
+.layout.has-focus .panel.focused .subtitle {
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+}
+
+.layout.has-focus .panel.focused .subtitle,
+.layout.has-focus .panel.focused .detail {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .layout {
+    min-height: 100vh;
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, minmax(28vh, auto));
+  }
+
+  .panel[data-panel] {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .detail {
+    max-width: none;
+  }
+}

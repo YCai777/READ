@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weight-Driven Adaptive Layout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout" aria-label="Adaptive communication layout">
+      <section class="panel active" data-panel="0">
+        <div class="panel-header">
+          <h1 class="main-title">
+            <button class="title-trigger" type="button">Meeting Online</button>
+          </h1>
+        </div>
+        <div class="panel-body">
+          <p class="subtitle">Video Meeting</p>
+          <div class="detail">
+            <p>
+              Video calls via platforms such as Zoom are becoming ubiquitous in work and educational environments,
+              especially after 2020, as COVID causes people to be forced apart as an alternative to face-to-face
+              meetings.
+            </p>
+            <p>
+              Video conferencing does restore some essential non-verbal elements: participants can see each other's
+              facial expressions and hear each other's intonation and tone of voice. This makes conveying and
+              interpreting emotions much easier than via email or chat. Expressions become visible and help avoid some
+              misunderstandings. As a result, video calls rank high on the richness scale of communication media
+              because they can convey multiple cues at once.
+            </p>
+            <p>
+              However, video communication also highlights non-verbal gaps. On the first point, video is limited to
+              what the camera captures, usually the head and shoulders, and the person is confined to a small square.
+              Important nonverbal information, such as full body posture and interpersonal distance is lost. Secondly,
+              due to the position of the camera, it is difficult to achieve direct eye contact. It is not possible for
+              a person's gaze to be focused on the screen and the camera at the same time, so the gaze is always seen
+              to be straying away from the other person, which is contrary to common sense. The camera cannot be
+              positioned in such a way that it is always in focus, and the gaze is staggered.
+            </p>
+            <p>
+              In group videoconferencing, where people need to focus on a large screen, it's also not easy to see
+              everyone's mini-screens at the same time, so using the rest of the eye doesn't work to a large extent.
+              Additionally, latency can be an issue, with immediacy becoming a random signal that usually doesn't get
+              the message across to the other person in the moment of reaction. For participants in video calls, they
+              have to work harder to read and send nonverbal signals, which creates more fatigue; communicating via
+              video requires a high level of concentration, with the gaze going back and forth all the time while the
+              head is not rotating, which goes against human communication instincts, and the quality of the screen
+              will also accelerate eye fatigue.
+            </p>
+            <p>
+              Videoconferencing has also been improved, and now tries to use virtual raise your hand button or like
+              icon and other features to simulate prompts without the need for verbal interruptions. Modern platforms
+              allow users to analogize their head movements and gestures, and nods in the virtual, thus restoring a
+              form of non-verbal feedback. This can greatly enhance social presence. These features improve the fluidity
+              of the meeting, and with these design interventions, everything is aimed at making it closer to a real
+              meeting.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="1">
+        <div class="panel-header">
+          <h2 class="main-title">
+            <button class="title-trigger" type="button">Friend Connection</button>
+          </h2>
+        </div>
+        <div class="panel-body">
+          <p class="subtitle">Discord</p>
+          <div class="detail">
+            <p>
+              In Discord, people don't just stay in the channel and communicate, or in this case, communication exists
+              as a medium, where friends can watch movies and enjoy music together, or go on adventures in virtual bars
+              or deep sea and high skies in games.
+            </p>
+            <p>
+              Communication also becomes a medium for friends to watch movies and enjoy music together, or to go
+              exploring in a virtual bar or deep sea skies in a game to increase interaction. However, these avatars are
+              often unable to accurately convey real emotions and are often based on another medium, which can change
+              moods for better or worse.
+            </p>
+            <p>
+              All of this distances people from each other and makes friends more like teammates than close friends.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="2">
+        <div class="panel-header">
+          <h2 class="main-title">
+            <button class="title-trigger" type="button">Digital Tools</button>
+          </h2>
+        </div>
+        <div class="panel-body">
+          <p class="subtitle">Emojis, GIFs, Reaction Buttons, Typing Indicators, Read Receipts</p>
+          <div class="detail">
+            <p>
+              Emojis function as digital facial expressions. GIFs simulate gestures or tone. Typing dots signal
+              anticipation. Read receipts confirm acknowledgment.
+            </p>
+            <p>
+              These elements attempt to replicate social presence. They provide micro-signals that suggest I am here.
+            </p>
+            <p>But they remain abstractions.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

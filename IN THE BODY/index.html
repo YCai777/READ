@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IN THE BODY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5efed;
+    --ink: #05080f;
+    --accent: #c8401a;
+    --muted: rgba(5, 8, 15, 0.4);
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Josefin Sans', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: default;
+  }
+
+  .orb-media {
+    position: fixed;
+    width: 264px;
+    height: 264px;
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+    transform: translate(-50%, -50%);
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<img class="orb-media" id="orb-media-0" src="lip.gif" alt="">
+<img class="orb-media" id="orb-media-1" src="lip.gif" alt="">
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const FONT_BODY  = '400 21px "Josefin Sans", sans-serif';
+const FONT_HEAD  = '700 84px "Josefin Sans", sans-serif';
+const FONT_DECK  = '400 26px "Josefin Sans", sans-serif';
+const LINE_H     = 34;
+const MARGIN     = 48;
+const COL_GAP    = 28;
+const ORB_R      = 104;
+const ORB_SIZE   = 264;
+const ORB_REPEL  = 320;
+const ORB_PAD    = 14;
+const MIN_LINE_W = 42;
+
+const BODY_TEXT = `Face-to-face conversation is multi-layered. Gestures shape emphasis. Eye contact regulates attention. Posture reveals confidence or hesitation. Distance signals intimacy or respect. Paralanguage - tone, rhythm, pacing - colors every sentence.
+
+In physical space, communication is immersive. Words are intertwined with subtle bodily signals. These cues operate unconsciously, helping us interpret intention almost instantly.
+
+Historically, language itself evolved from visual and embodied forms. Ancient Sumerian, Egyptian, and Chinese civilizations developed pictographic systems that translated visual signs into structured writing. Language did not replace nonverbal communication - it extended it.
+
+Human communication has always operated on both perceptual and symbolic levels. Meaning emerges from the interaction between image, body, and sign.`;
+
+const HEAD_TEXT  = 'IN THE BODY';
+const DECK_TEXT  = 'How gesture, image, and bodily presence shape meaning before language is fully read.';
+// ─── TEXT LAYOUT (pure canvas measureText) ───────────────────────────────────
+function prepare(text, font) {
+  return {
+    font,
+    words: text.split(/\n\n+/).flatMap(function (seg) {
+      var ws = seg.trim().split(/\s+/);
+      return ws.map(function (w, i) { return { w: w, last: i === ws.length - 1 }; });
+    }),
+  };
+}
+
+function layoutNextLine(handle, cursor, maxWidth) {
+  var idx = cursor.wordIndex || 0;
+  if (idx >= handle.words.length) return null;
+  ctx.font = handle.font;
+  var line = '', i = idx;
+  while (i < handle.words.length) {
+    var test = line ? line + ' ' + handle.words[i].w : handle.words[i].w;
+    if (ctx.measureText(test).width > maxWidth && line) break;
+    line = test;
+    var isLast = handle.words[i].last;
+    i++;
+    if (isLast) break;
+  }
+  return line ? { text: line, end: { wordIndex: i } } : null;
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+var canvas = document.getElementById('canvas');
+var ctx    = canvas.getContext('2d');
+var orbMedia = [
+  document.getElementById('orb-media-0'),
+  document.getElementById('orb-media-1'),
+];
+var W = 0, H = 0;
+var paused = false;
+
+var orbs = [
+  { x: 0, y: 0, vx: 0.11, vy: 0.08, r: ORB_R, color: '#c8401a', dragging: false },
+  { x: 0, y: 0, vx: -0.09, vy: 0.12, r: ORB_R, color: '#1a4a6b', dragging: false },
+];
+
+var prepBody = prepare(BODY_TEXT, FONT_BODY);
+var prepHead = prepare(HEAD_TEXT, FONT_HEAD);
+var prepDeck = prepare(DECK_TEXT, FONT_DECK);
+
+// ─── RESIZE ──────────────────────────────────────────────────────────────────
+function resize() {
+  var dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (orbs[0].x === 0) {
+    orbs[0].x = W * 0.35; orbs[0].y = H * 0.38;
+    orbs[1].x = W * 0.65; orbs[1].y = H * 0.55;
+  }
+}
+
+// ─── COLUMN LAYOUT ───────────────────────────────────────────────────────────
+function computeColumns() {
+  var contentW = W - MARGIN * 2;
+  var baseColW = (contentW - COL_GAP) / 2;
+  var split = MARGIN + baseColW + COL_GAP * 0.5;
+
+  for (var k = 0; k < orbs.length; k++) {
+    var orb = orbs[k];
+    var d = Math.abs(orb.x - split);
+    if (d < ORB_REPEL) {
+      var t = 1 - d / ORB_REPEL;
+      split += t * t * ORB_R * 3 * Math.sign(orb.x - split);
+    }
+  }
+
+  var MW = 60;
+  split = Math.max(MARGIN + MW + COL_GAP * 0.5, Math.min(split, MARGIN + contentW - MW - COL_GAP * 0.5));
+
+  return [
+    { x: MARGIN,                 width: split - MARGIN - COL_GAP * 0.5 },
+    { x: split + COL_GAP * 0.5,  width: MARGIN + contentW - split - COL_GAP * 0.5 },
+  ];
+}
+
+// ─── PER-LINE ORB AVOIDANCE ──────────────────────────────────────────────────
+// Returns an array of available intervals [{lx, lw}, ...] so text can fill
+// BOTH sides of an orb sitting inside a column.
+function getLineIntervals(cy, colX, colW) {
+  var left = colX, right = colX + colW;
+  var cuts = []; // orb exclusion zones clipped to [left, right]
+  for (var k = 0; k < orbs.length; k++) {
+    var orb = orbs[k];
+    var R = orb.r + ORB_PAD;
+    var dy = (cy + LINE_H * 0.5) - orb.y;
+    if (Math.abs(dy) >= R) continue;
+    var half = Math.sqrt(R * R - dy * dy);
+    var cL = Math.max(left, orb.x - half);
+    var cR = Math.min(right, orb.x + half);
+    if (cL < cR) cuts.push(cL, cR); // flat pairs: [start, end, start, end, …]
+  }
+  if (cuts.length === 0) return [{ lx: left, lw: right - left }];
+  // Sort by start edge
+  for (var i = 0; i < cuts.length - 2; i += 2)
+    for (var j = i + 2; j < cuts.length; j += 2)
+      if (cuts[j] < cuts[i]) {
+        var t1 = cuts[i]; cuts[i] = cuts[j]; cuts[j] = t1;
+        var t2 = cuts[i+1]; cuts[i+1] = cuts[j+1]; cuts[j+1] = t2;
+      }
+  // Walk left→right, collecting gaps between exclusion zones
+  var out = [], x = left;
+  for (var i = 0; i < cuts.length; i += 2) {
+    if (cuts[i] > x) { var w = cuts[i] - x; if (w >= MIN_LINE_W) out.push({ lx: x, lw: w }); }
+    x = Math.max(x, cuts[i + 1]);
+  }
+  if (right > x) { var w2 = right - x; if (w2 >= MIN_LINE_W) out.push({ lx: x, lw: w2 }); }
+  return out;
+}
+
+// ─── DRAW ────────────────────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#f5efed';
+  ctx.fillRect(0, 0, W, H);
+
+  var cols = computeColumns();
+  var headerY = 36;
+  var headerX = MARGIN;
+
+  // Headline
+  var hline = layoutNextLine(prepHead, { wordIndex: 0 }, W - MARGIN * 2);
+  if (hline) {
+    ctx.font = FONT_HEAD;
+    ctx.fillStyle = '#05080f';
+    ctx.fillText(hline.text, headerX - 5, headerY + 64
+    );
+  }
+
+  // Deck
+  var dline = layoutNextLine(prepDeck, { wordIndex: 0 }, W - MARGIN * 2);
+  if (dline) {
+    ctx.font = FONT_DECK;
+    ctx.fillStyle = 'rgba(5, 8, 15, 0.4)';
+    ctx.fillText(dline.text, headerX, headerY + 104);
+  }
+
+  var bodyTop = headerY + 136;
+  var bodyH = H - bodyTop - 80;
+
+  // Body text — single cursor flowing across all columns
+  ctx.font = FONT_BODY;
+  ctx.fillStyle = '#05080f';
+  var cursor = { wordIndex: 0 };
+
+  outer: for (var ci = 0; ci < cols.length; ci++) {
+    var c = cols[ci];
+    var cy = bodyTop + 24;
+    while (cy + LINE_H <= bodyTop + bodyH) {
+      var segs = getLineIntervals(cy, c.x, c.width);
+      for (var si = 0; si < segs.length; si++) {
+        var line = layoutNextLine(prepBody, cursor, segs[si].lw);
+        if (!line) break outer;
+        ctx.font = FONT_BODY;
+        ctx.fillStyle = '#05080f';
+        ctx.fillText(line.text, segs[si].lx, cy + LINE_H * 0.78);
+        cursor = line.end;
+      }
+      cy += LINE_H;
+    }
+  }
+
+}
+
+function positionOrbMedia() {
+  for (var i = 0; i < orbs.length; i++) {
+    orbMedia[i].style.left = orbs[i].x + 'px';
+    orbMedia[i].style.top = orbs[i].y + 'px';
+  }
+}
+
+// ─── ANIMATION ───────────────────────────────────────────────────────────────
+function tick() {
+  if (!paused) {
+    for (var i = 0; i < orbs.length; i++) {
+      var orb = orbs[i];
+      if (orb.dragging) continue;
+      orb.x += orb.vx;
+      orb.y += orb.vy;
+      if (orb.x < orb.r || orb.x > W - orb.r) orb.vx *= -1;
+      if (orb.y < orb.r || orb.y > H - orb.r) orb.vy *= -1;
+    }
+  }
+  draw();
+  positionOrbMedia();
+  requestAnimationFrame(tick);
+}
+
+// ─── INTERACTION ─────────────────────────────────────────────────────────────
+var dragging = null, dragOff = { x: 0, y: 0 };
+
+function hitOrb(px, py) {
+  for (var i = 0; i < orbs.length; i++) {
+    var dx = px - orbs[i].x, dy = py - orbs[i].y;
+    if (dx * dx + dy * dy < orbs[i].r * orbs[i].r) return orbs[i];
+  }
+  return null;
+}
+
+function pointerDown(e) {
+  var px = e.clientX, py = e.clientY;
+  var hit = hitOrb(px, py);
+  if (hit) {
+    hit.dragging = true;
+    dragging = hit;
+    dragOff = { x: px - hit.x, y: py - hit.y };
+    canvas.style.cursor = 'grabbing';
+  } else {
+    paused = !paused;
+  }
+}
+
+function pointerMove(e) {
+  if (dragging) {
+    dragging.x = e.clientX - dragOff.x;
+    dragging.y = e.clientY - dragOff.y;
+  } else {
+    canvas.style.cursor = hitOrb(e.clientX, e.clientY) ? 'grab' : 'default';
+  }
+}
+
+function pointerUp() {
+  if (dragging) { dragging.dragging = false; dragging = null; canvas.style.cursor = 'default'; }
+}
+
+canvas.addEventListener('mousedown', pointerDown);
+canvas.addEventListener('mousemove', pointerMove);
+window.addEventListener('mouseup', pointerUp);
+canvas.addEventListener('touchstart', function (e) { e.preventDefault(); pointerDown(e.touches[0]); }, { passive: false });
+canvas.addEventListener('touchmove',  function (e) { e.preventDefault(); pointerMove(e.touches[0]); }, { passive: false });
+canvas.addEventListener('touchend',   function (e) { e.preventDefault(); pointerUp(); }, { passive: false });
+window.addEventListener('resize', resize);
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+resize();
+tick();
+</script>
+</body>
+</html>
