@@ -43,24 +43,114 @@
     transform: translate(-50%, -50%);
   }
 
+  .stamp-rack {
+    position: fixed;
+    top: 24px;
+    right: 22px;
+    width: 500px;
+    height: 590px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .stamp-rack img {
+    position: absolute;
+    display: block;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 22px rgba(5, 8, 15, 0.12));
+    transform-origin: center;
+    opacity: 1;
+  }
+
+  .stamp-rack img:nth-child(1) {
+    top: 0;
+    right: 150px;
+    height: 180px;
+    z-index: 2;
+    transform: rotate(-8deg);
+  }
+
+  .stamp-rack img:nth-child(2) {
+    top: 22px;
+    right: 0;
+    height: 164px;
+    z-index: 3;
+    transform: rotate(6deg);
+  }
+
+  .stamp-rack img:nth-child(3) {
+    top: 198px;
+    right: 46px;
+    height: 176px;
+    z-index: 1;
+    transform: rotate(-5deg);
+  }
+
+  .stamp-rack img:nth-child(4) {
+    top: 392px;
+    right: 110px;
+    height: 192px;
+    z-index: 2;
+    transform: rotate(7deg);
+  }
+
+  @media (max-width: 900px) {
+    .stamp-rack {
+      top: 18px;
+      right: 16px;
+      width: 336px;
+      height: 408px;
+    }
+
+    .stamp-rack img:nth-child(1) {
+      top: 0;
+      right: 92px;
+      height: 116px;
+    }
+
+    .stamp-rack img:nth-child(2) {
+      top: 14px;
+      right: 0;
+      height: 106px;
+    }
+
+    .stamp-rack img:nth-child(3) {
+      top: 134px;
+      right: 26px;
+      height: 114px;
+    }
+
+    .stamp-rack img:nth-child(4) {
+      top: 272px;
+      right: 74px;
+      height: 126px;
+    }
+  }
+
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
+<div class="stamp-rack" aria-hidden="true">
+  <img src="pic/STAMP-04.png" alt="">
+  <img src="pic/STAMP-06.png" alt="">
+  <img src="pic/STAMP-07.png" alt="">
+  <img src="pic/STAMP-09.png" alt="">
+</div>
 <img class="orb-media" id="orb-media-0" src="lip.gif" alt="">
 <img class="orb-media" id="orb-media-1" src="lip.gif" alt="">
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const FONT_BODY  = '400 21px "Josefin Sans", sans-serif';
-const FONT_HEAD  = '700 84px "Josefin Sans", sans-serif';
+const FONT_BODY  = '400 20px "Josefin Sans", sans-serif';
+const FONT_HEAD  = '700 67px "Josefin Sans", sans-serif';
 const FONT_DECK  = '400 26px "Josefin Sans", sans-serif';
-const LINE_H     = 34;
+const LINE_H     = 32;
 const MARGIN     = 48;
 const COL_GAP    = 28;
 const ORB_R      = 104;
-const ORB_SIZE   = 264;
 const ORB_REPEL  = 320;
 const ORB_PAD    = 14;
 const MIN_LINE_W = 42;
@@ -154,46 +244,60 @@ function computeColumns() {
     }
   }
 
-  var MW = 60;
-  split = Math.max(MARGIN + MW + COL_GAP * 0.5, Math.min(split, MARGIN + contentW - MW - COL_GAP * 0.5));
+  var minWidth = 60;
+  split = Math.max(MARGIN + minWidth + COL_GAP * 0.5, Math.min(split, MARGIN + contentW - minWidth - COL_GAP * 0.5));
 
   return [
-    { x: MARGIN,                 width: split - MARGIN - COL_GAP * 0.5 },
-    { x: split + COL_GAP * 0.5,  width: MARGIN + contentW - split - COL_GAP * 0.5 },
+    { x: MARGIN, width: split - MARGIN - COL_GAP * 0.5 },
+    { x: split + COL_GAP * 0.5, width: MARGIN + contentW - split - COL_GAP * 0.5 },
   ];
 }
 
 // ─── PER-LINE ORB AVOIDANCE ──────────────────────────────────────────────────
-// Returns an array of available intervals [{lx, lw}, ...] so text can fill
-// BOTH sides of an orb sitting inside a column.
 function getLineIntervals(cy, colX, colW) {
-  var left = colX, right = colX + colW;
-  var cuts = []; // orb exclusion zones clipped to [left, right]
+  var left = colX;
+  var right = colX + colW;
+  var cuts = [];
+
   for (var k = 0; k < orbs.length; k++) {
     var orb = orbs[k];
-    var R = orb.r + ORB_PAD;
+    var radius = orb.r + ORB_PAD;
     var dy = (cy + LINE_H * 0.5) - orb.y;
-    if (Math.abs(dy) >= R) continue;
-    var half = Math.sqrt(R * R - dy * dy);
-    var cL = Math.max(left, orb.x - half);
-    var cR = Math.min(right, orb.x + half);
-    if (cL < cR) cuts.push(cL, cR); // flat pairs: [start, end, start, end, …]
+    if (Math.abs(dy) >= radius) continue;
+    var half = Math.sqrt(radius * radius - dy * dy);
+    var cutLeft = Math.max(left, orb.x - half);
+    var cutRight = Math.min(right, orb.x + half);
+    if (cutLeft < cutRight) cuts.push(cutLeft, cutRight);
   }
+
   if (cuts.length === 0) return [{ lx: left, lw: right - left }];
-  // Sort by start edge
-  for (var i = 0; i < cuts.length - 2; i += 2)
-    for (var j = i + 2; j < cuts.length; j += 2)
+
+  for (var i = 0; i < cuts.length - 2; i += 2) {
+    for (var j = i + 2; j < cuts.length; j += 2) {
       if (cuts[j] < cuts[i]) {
-        var t1 = cuts[i]; cuts[i] = cuts[j]; cuts[j] = t1;
-        var t2 = cuts[i+1]; cuts[i+1] = cuts[j+1]; cuts[j+1] = t2;
+        var a = cuts[i];
+        var b = cuts[i + 1];
+        cuts[i] = cuts[j];
+        cuts[i + 1] = cuts[j + 1];
+        cuts[j] = a;
+        cuts[j + 1] = b;
       }
-  // Walk left→right, collecting gaps between exclusion zones
-  var out = [], x = left;
+    }
+  }
+
+  var out = [];
+  var x = left;
   for (var i = 0; i < cuts.length; i += 2) {
-    if (cuts[i] > x) { var w = cuts[i] - x; if (w >= MIN_LINE_W) out.push({ lx: x, lw: w }); }
+    if (cuts[i] > x) {
+      var w = cuts[i] - x;
+      if (w >= MIN_LINE_W) out.push({ lx: x, lw: w });
+    }
     x = Math.max(x, cuts[i + 1]);
   }
-  if (right > x) { var w2 = right - x; if (w2 >= MIN_LINE_W) out.push({ lx: x, lw: w2 }); }
+  if (right > x) {
+    var w2 = right - x;
+    if (w2 >= MIN_LINE_W) out.push({ lx: x, lw: w2 });
+  }
   return out;
 }
 
@@ -224,24 +328,21 @@ function draw() {
     ctx.fillText(dline.text, headerX, headerY + 104);
   }
 
-  var bodyTop = headerY + 136;
-  var bodyH = H - bodyTop - 80;
+  var bodyTop = Math.max(headerY + 150, H - 340);
+  var bodyH = H - bodyTop - 48;
 
-  // Body text — single cursor flowing across all columns
   ctx.font = FONT_BODY;
   ctx.fillStyle = '#05080f';
   var cursor = { wordIndex: 0 };
 
   outer: for (var ci = 0; ci < cols.length; ci++) {
     var c = cols[ci];
-    var cy = bodyTop + 24;
+    var cy = bodyTop + 18;
     while (cy + LINE_H <= bodyTop + bodyH) {
       var segs = getLineIntervals(cy, c.x, c.width);
       for (var si = 0; si < segs.length; si++) {
         var line = layoutNextLine(prepBody, cursor, segs[si].lw);
         if (!line) break outer;
-        ctx.font = FONT_BODY;
-        ctx.fillStyle = '#05080f';
         ctx.fillText(line.text, segs[si].lx, cy + LINE_H * 0.78);
         cursor = line.end;
       }

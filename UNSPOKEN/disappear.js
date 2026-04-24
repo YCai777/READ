@@ -186,12 +186,35 @@ function splitTextToChars(container) {
         const sourceText = block.textContent;
         block.textContent = '';
 
-        Array.from(sourceText).forEach((char, index) => {
-            const span = document.createElement('span');
-            span.className = 'text-char';
-            span.dataset.index = String(index);
-            span.textContent = char;
-            block.appendChild(span);
+        let index = 0;
+        const tokens = sourceText.split(/(\s+)/);
+
+        tokens.forEach(token => {
+            if (!token) {
+                return;
+            }
+
+            if (/^\s+$/.test(token)) {
+                const whitespace = document.createElement('span');
+                whitespace.className = 'text-space';
+                whitespace.textContent = token;
+                block.appendChild(whitespace);
+                return;
+            }
+
+            const word = document.createElement('span');
+            word.className = 'text-word';
+
+            Array.from(token).forEach(char => {
+                const span = document.createElement('span');
+                span.className = 'text-char';
+                span.dataset.index = String(index);
+                span.textContent = char;
+                word.appendChild(span);
+                index += 1;
+            });
+
+            block.appendChild(word);
         });
     });
 }

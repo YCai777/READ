@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>DISTORTED</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;700&display=swap"
+		rel="stylesheet"
+	/>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+	<div class="intro" id="intro" aria-hidden="true">
+		<div class="intro__lottie" id="intro-lottie"></div>
+	</div>
+
+	<div class="stamp-cluster" aria-hidden="true">
+		<img class="stamp stamp--eye" src="pic/STAMP-05.png" alt="" />
+		<img class="stamp stamp--nose" src="pic/STAMP-08.png" alt="" />
+		<img class="stamp stamp--lips" src="pic/STAMP-10.png" alt="" />
+	</div>
+
+	<main class="content">
+		<section class="section--hero" id="section-1">
+			<header class="hero__meta">
+				<h1 class="main-title">DISTORTED</h1>
+			</header>
+
+			<article class="essay" id="text-display" aria-label="Essay Text">
+				<p class="body-text text-block">In digital conversations, every sentence risks misinterpretation. As one participant reflected: "I was expecting them to be angry, so I interpreted their message that way."</p>
+				<p class="body-text text-block">Meaning becomes unstable. Context must be guessed.</p>
+				<p class="body-text text-block">Online silence carries ambiguity. Is it indifference? Confusion? Distraction? A network delay?</p>
+				<p class="body-text text-block">Several respondents described how emotional interpretation often reflects their own state of mind. "How you're feeling that day can be projected onto a chat or message, which could be completely neutral."</p>
+				<p class="body-text text-block">Without immediate feedback&mdash;a puzzled look, a nod&mdash;communication requires greater emotional effort. Interpretation becomes speculation.</p>
+				<p class="body-text text-block">Online communication can sometimes make it less awkward for friends who don't know each other well, and more text-based communication makes it easier for strangers to get to know each other, but it can seem lacking for close friends who need to solidify their relationship. Communication between friends is more than just words, it's more about body language and shared experiences. Hugs, sitting side-by-side, eye contact&mdash;these are the things that make people feel "we're close". But when the communication goes to the screen, such as video chatting or online social gaming, a lot of the subtle "warmth" disappears. In the face of a friend's sadness, you may only be able to type "I understand", but in the virtual world, you can't hug or pass a glass of water, and it's a luxury to hand over a tissue or pat on the shoulder. The lack of a real face and emotional response can create a sense of distance, especially when a friend needs comfort, empathy, or emotional support.</p>
+				<p class="body-text text-block">These forms of embodied presence cannot be digitized. In moments of sadness or vulnerability, typing "I understand" does not carry the same weight as physical closeness.</p>
+				<p class="body-text text-block">An entire sensory dimension is removed.</p>
+				<p class="body-text text-block">Communication is fragile. When it works, it feels transparent. When it fails, it can fracture relationships.</p>
+			</article>
+		</section>
+	</main>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js" defer></script>
+	<script src="disappear.js" defer></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			const intro = document.getElementById("intro");
+			if (typeof initDisappearInteraction === "function") {
+				initDisappearInteraction();
+			} else if (intro) {
+				intro.classList.add("intro--done");
+			}
+		});
+	</script>
+</body>
+</html>

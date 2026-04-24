@@ -11,12 +11,12 @@
    ============================================ */
 
 :root {
-  --fs-main-title: 52.8pt;
-  --fs-subtitle: 45pt;
-  --fs-body: 20pt;
-  --fs-footnote: 18pt;
-  --fs-sidebar-title: 36pt;
-  --fs-sidebar-subtitle: 18pt;
+  --fs-main-title: 47.52pt;
+  --fs-subtitle: 40.5pt;
+  --fs-body: 18pt;
+  --fs-footnote: 16.2pt;
+  --fs-sidebar-title: 32.4pt;
+  --fs-sidebar-subtitle: 16.2pt;
 
   --back: #f5efed;
   --ink: #05080f;
@@ -145,7 +145,7 @@ body.intro-active .content {
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.01em;
-  max-width: 520px;
+  max-width: 572px;
   word-break: normal;
   overflow-wrap: normal;
   hyphens: manual;
@@ -179,7 +179,7 @@ body.intro-active .content {
   min-height: 100vh;
   padding: 10vh 7vw 9vh 8vw;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(340px, 540px);
+  grid-template-columns: minmax(220px, 1fr) minmax(374px, 594px);
   align-items: start;
   gap: 72px;
 }
@@ -197,20 +197,11 @@ body.intro-active .content {
   max-width: 6ch;
 }
 
-.hero__subheading {
-  max-width: 18ch;
-  font-size: 18pt;
-  font-weight: 400;
-  line-height: 1.24;
-  letter-spacing: 0.01em;
-  opacity: 0.8;
-}
-
 .essay {
   padding-top: 10px;
   display: grid;
   gap: 34px;
-  max-width: 560px;
+  max-width: 616px;
 }
 
 .text-block {
@@ -326,12 +317,12 @@ body.intro-active .content {
 
 @media (max-width: 900px) {
   :root {
-    --fs-main-title: 41.6pt;
-    --fs-subtitle: 28pt;
-    --fs-body: 16pt;
-    --fs-footnote: 14pt;
-    --fs-sidebar-title: 30pt;
-    --fs-sidebar-subtitle: 14pt;
+    --fs-main-title: 37.44pt;
+    --fs-subtitle: 25.2pt;
+    --fs-body: 14.4pt;
+    --fs-footnote: 12.6pt;
+    --fs-sidebar-title: 27pt;
+    --fs-sidebar-subtitle: 12.6pt;
   }
 
   .sidebar {
@@ -349,11 +340,6 @@ body.intro-active .content {
     position: static;
   }
 
-  .hero__subheading {
-    font-size: 14pt;
-    max-width: 24ch;
-  }
-
   .essay {
     max-width: 640px;
   }
@@ -366,8 +352,8 @@ body.intro-active .content {
 
 @media (max-width: 600px) {
   :root {
-    --fs-sidebar-title: 24pt;
-    --fs-sidebar-subtitle: 12pt;
+    --fs-sidebar-title: 21.6pt;
+    --fs-sidebar-subtitle: 10.8pt;
   }
 
   .sidebar {

@@ -1,6 +1,7 @@
 const baseWeight = 1;
 const panels = [...document.querySelectorAll(".panel")];
 const layout = document.querySelector(".layout");
+const compactQuery = window.matchMedia("(max-width: 900px)");
 
 const items = panels.map((panel) => ({
   panel,
@@ -20,25 +21,30 @@ const spring = {
 };
 
 let focusedIndex = null;
+let expandedIndex = null;
 
 function addBoost(item, amount, duration) {
   item.velocity += (amount * 2) / (duration / 1000);
 }
 
 function syncState() {
+  const isCompact = compactQuery.matches;
   let highestIndex = 0;
 
   for (let index = 1; index < items.length; index += 1) {
     if (items[index].weight > items[highestIndex].weight) highestIndex = index;
   }
 
-  layout.classList.toggle("has-focus", focusedIndex !== null);
+  layout.classList.toggle("has-focus", !isCompact && focusedIndex !== null);
 
   items.forEach((item, index) => {
-    const isFocused = index === focusedIndex;
-    const isActive = focusedIndex === null ? index === highestIndex : isFocused;
+    const isFocused = !isCompact && index === focusedIndex;
+    const isActive = !isCompact && (focusedIndex === null ? index === highestIndex : isFocused);
+    const isExpanded = isCompact && index === expandedIndex;
     item.panel.classList.toggle("focused", isFocused);
     item.panel.classList.toggle("active", isActive);
+    item.panel.classList.toggle("expanded", isExpanded);
+    item.trigger.setAttribute("aria-expanded", String(isCompact ? isExpanded : isActive));
   });
 }
 
@@ -82,9 +88,13 @@ function tick(now) {
 }
 
 items.forEach((item, index) => {
-  item.panel.addEventListener("mouseenter", () => addBoost(item, boosts.hover.amount, boosts.hover.duration));
+  item.panel.addEventListener("mouseenter", () => {
+    if (compactQuery.matches) return;
+    addBoost(item, boosts.hover.amount, boosts.hover.duration);
+  });
 
   item.trigger.addEventListener("mouseenter", () => {
+    if (compactQuery.matches) return;
     focusedIndex = index;
     addBoost(item, boosts.focus.amount, boosts.focus.duration);
     syncState();
@@ -92,12 +102,26 @@ items.forEach((item, index) => {
   });
 
   item.trigger.addEventListener("mouseleave", () => {
+    if (compactQuery.matches) return;
     if (focusedIndex === index) {
       focusedIndex = null;
       syncState();
       updateTracks();
     }
   });
+
+  item.trigger.addEventListener("click", () => {
+    if (!compactQuery.matches) return;
+    expandedIndex = expandedIndex === index ? null : index;
+    syncState();
+  });
+});
+
+compactQuery.addEventListener("change", () => {
+  focusedIndex = null;
+  expandedIndex = null;
+  syncState();
+  updateTracks();
 });
 
 syncState();

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floating Stamp Field</title>
+  <style>
+    /* ============================================
+       Typography Specification — Josefin Sans
+       ============================================
+       Page:
+         Main Title   — Bold     84pt
+         Subtitle     — Bold     45pt
+         Body Text    — Regular   20pt
+         Footnote     — Regular   18pt
+       Sidebar:
+         Subtitle     — Regular   18pt
+       ============================================ */
+    :root {
+      --card-width: clamp(106px, 18.5vw, 252px);
+      --fs-main-title: 52.8pt;
+      --fs-subtitle: 45pt;
+      --fs-body: 20pt;
+      --fs-footnote: 18pt;
+      --back: #f5efed;
+      --ink: #05080f;
+      --ink-muted: rgba(5, 8, 15, 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+      background: var(--back);
+      color: var(--ink);
+      font-family: "Josefin Sans", "Trebuchet MS", sans-serif;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .copy-title-block {
+      position: absolute;
+      left: clamp(1.75rem, 4vw, 4rem);
+      top: clamp(1.5rem, 4vw, 3.5rem);
+      z-index: 60;
+      pointer-events: none;
+    }
+
+    .copy-title {
+      margin: 0;
+      font-size: var(--fs-main-title);
+      font-weight: 700;
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+
+    .copy-body-panel {
+      position: absolute;
+      left: clamp(1.75rem, 4vw, 4rem);
+      bottom: clamp(1rem, 2.8vw, 2.25rem);
+      z-index: 60;
+      width: min(680px, 52vw);
+      pointer-events: none;
+    }
+
+    .copy-body {
+      display: grid;
+      gap: 0;
+      font-size: 16pt;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--ink);
+      max-width: 680px;
+      letter-spacing: 0.01em;
+      word-break: normal;
+      overflow-wrap: normal;
+      hyphens: manual;
+      text-wrap: pretty;
+    }
+
+    .copy-body p {
+      margin: 0;
+      max-width: 680px;
+    }
+
+    .copy-body p + p {
+      margin-top: 1em;
+    }
+
+    .stamp-slot {
+      position: absolute;
+      width: calc(var(--card-width) * var(--size, 1));
+      aspect-ratio: 1659 / 1474.17;
+      left: var(--left);
+      top: var(--top);
+      z-index: var(--layer, 1);
+      pointer-events: none;
+      transition: transform 220ms ease-out, z-index 120ms ease-out;
+      transform: translate(0, 0) scale(1);
+    }
+
+    .stage.is-focused .stamp-slot {
+      transform: translate(var(--pull-x, 0px), var(--pull-y, 0px)) scale(0.82);
+    }
+
+    .stage.is-focused .stamp-slot.is-active {
+      transform: translate(var(--focus-x, 0px), var(--focus-y, 0px)) scale(1.5);
+    }
+
+    .stamp-drift {
+      width: 100%;
+      height: 100%;
+      animation: drift var(--duration) ease-in-out infinite alternate;
+      animation-delay: var(--delay);
+      will-change: transform;
+    }
+
+    .stamp-card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      transform-style: preserve-3d;
+      will-change: transform, filter;
+      transform:
+        perspective(1200px)
+        rotateX(var(--tilt-x, 0deg))
+        rotateY(var(--tilt-y, 0deg))
+        scale(var(--hover-scale, 1));
+      filter: drop-shadow(
+        var(--shadow-x, 0px)
+        var(--shadow-y, 14px)
+        var(--shadow-blur, 22px)
+        rgba(52, 28, 14, var(--shadow-opacity, 0.18))
+      );
+      transition:
+        transform 100ms ease-out,
+        filter 100ms ease-out;
+    }
+
+    .stamp-card:focus-visible {
+      outline: 2px solid rgba(80, 42, 16, 0.45);
+      outline-offset: 6px;
+    }
+
+    .stamp-card:hover,
+    .stamp-card:focus-visible {
+      z-index: 20;
+    }
+
+    .stamp-card img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      transition:
+        opacity 180ms ease-out,
+        transform 180ms ease-out,
+        filter 180ms ease-out;
+      transform: translateZ(0);
+    }
+
+    .stamp-card .bw {
+      opacity: 1;
+      filter: saturate(0.18) contrast(1.04) brightness(1.02);
+    }
+
+    .stamp-card .color {
+      opacity: 0;
+      filter: saturate(1.02) contrast(1.02);
+    }
+
+    .stamp-card:hover .bw,
+    .stamp-card:focus-visible .bw {
+      opacity: 0;
+      transform: translateZ(10px) scale(1.015);
+      filter: saturate(0.35) contrast(1.06);
+    }
+
+    .stamp-card:hover .color,
+    .stamp-card:focus-visible .color {
+      opacity: 1;
+      transform: translateZ(12px) scale(1.02);
+      filter: saturate(1.04) contrast(1.04);
+    }
+
+    .foil {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: var(--foil-opacity, 0);
+      mix-blend-mode: color-dodge;
+      -webkit-mask-image: var(--foil-mask);
+      -webkit-mask-position: center;
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-image: var(--foil-mask);
+      mask-position: center;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      background:
+        radial-gradient(
+          circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+          rgba(255, 255, 255, 0.72) 0%,
+          rgba(255, 255, 255, 0.18) 12%,
+          rgba(255, 255, 255, 0) 32%
+        ),
+        conic-gradient(
+          from var(--glow-angle, 135deg) at var(--pointer-x, 50%) var(--pointer-y, 50%),
+          rgba(255, 86, 121, 0.16),
+          rgba(255, 176, 70, 0.12),
+          rgba(254, 239, 114, 0.12),
+          rgba(91, 255, 214, 0.16),
+          rgba(90, 154, 255, 0.18),
+          rgba(194, 114, 255, 0.12),
+          rgba(255, 86, 121, 0.16)
+        );
+      filter: saturate(1.18) blur(0.22px);
+      transition: opacity 120ms ease-out, filter 120ms ease-out;
+    }
+
+    .foil::before,
+    .foil::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+
+    .foil::before {
+      background:
+        linear-gradient(
+          var(--glow-angle, 135deg),
+          rgba(255, 255, 255, 0) 18%,
+          rgba(255, 255, 255, 0.18) 44%,
+          rgba(255, 255, 255, 0) 72%
+        );
+      opacity: 0.9;
+    }
+
+    .foil::after {
+      background:
+        radial-gradient(circle at var(--pointer-x, 50%) var(--pointer-y, 50%), rgba(255, 255, 255, 0.34), transparent 20%);
+      mix-blend-mode: screen;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate(calc(var(--dx) * -1), calc(var(--dy) * -1)) rotate(calc(var(--rotate) * -1));
+      }
+      to {
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rotate));
+      }
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --card-width: clamp(90px, 22vw, 162px);
+      }
+
+      .copy-title-block {
+        left: 1rem;
+        top: 1rem;
+      }
+
+      .copy-title {
+        font-size: 41.6pt;
+      }
+
+      .copy-body-panel {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        width: auto;
+      }
+
+      .copy-body {
+        max-width: none;
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
+      .copy-body p {
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage" aria-label="Floating stamp gallery">
+    <section class="copy-title-block" aria-label="What's Next Title">
+      <h1 class="copy-title">WHAT'S NEXT</h1>
+    </section>
+    <section class="copy-body-panel" aria-label="What's Next Copy">
+      <div class="copy-body">
+        <p>Over 70% of respondents conduct more than 80% of their daily communication online. For this generation, digital communication is primary. Close relationships are sustained through screens.</p>
+        <p>Yet the tools remain thin. Online, people compensate with emoji choice, punctuation, and timing. Small signals carry emotional weight they were never designed to hold.</p>
+        <p>Connection persists. But interpretation requires more effort, and misreading accumulates.</p>
+        <p>Misunderstanding may not be a failure. It may be evidence that digital communication is still evolving. To read each other online requires rethinking how presence itself can be designed.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const MAX_TILT = 15;
+    const stamps = [
+      { name: "STAMP-03", left: "33%", top: "8%", size: 1.28, dx: "14px", dy: "-9px", rotate: "-1.6deg", duration: "7.6s", delay: "-1.4s", layer: 4, pullX: "18px", pullY: "12px" },
+      { name: "STAMP-04", left: "50%", top: "14%", size: 0.88, dx: "-12px", dy: "10px", rotate: "1.3deg", duration: "8.2s", delay: "-3.1s", layer: 2, pullX: "14px", pullY: "8px" },
+      { name: "STAMP-05", left: "56.5%", top: "29%", size: 1.24, dx: "16px", dy: "8px", rotate: "-1.1deg", duration: "7.1s", delay: "-2.4s", layer: 5, pullX: "10px", pullY: "-8px" },
+      { name: "STAMP-06", left: "71%", top: "8%", size: 1.28, dx: "-15px", dy: "-12px", rotate: "1.4deg", duration: "8.8s", delay: "-4.3s", layer: 3, pullX: "-14px", pullY: "10px" },
+      { name: "STAMP-07", left: "39%", top: "47%", size: 0.9, dx: "13px", dy: "14px", rotate: "1.1deg", duration: "7.9s", delay: "-2.8s", layer: 2, pullX: "12px", pullY: "-12px" },
+      { name: "STAMP-08", left: "51.5%", top: "58%", size: 0.92, dx: "-17px", dy: "-9px", rotate: "-1.5deg", duration: "8.5s", delay: "-1.1s", layer: 1, pullX: "10px", pullY: "-16px" },
+      { name: "STAMP-09", left: "65%", top: "47%", size: 0.94, dx: "15px", dy: "11px", rotate: "1.2deg", duration: "7.4s", delay: "-3.6s", layer: 2, pullX: "-8px", pullY: "-14px" },
+      { name: "STAMP-10", left: "76%", top: "62%", size: 0.9, dx: "-14px", dy: "-13px", rotate: "-1.2deg", duration: "8.1s", delay: "-2s", layer: 1, pullX: "-14px", pullY: "-10px" },
+      { name: "STAMP-11", left: "78%", top: "24%", size: 1.34, dx: "12px", dy: "9px", rotate: "1.1deg", duration: "8.6s", delay: "-2.2s", layer: 4, pullX: "-18px", pullY: "6px" }
+    ];
+
+    const stage = document.getElementById("stage");
+
+    function positionActiveSlot(slot) {
+      const stageRect = stage.getBoundingClientRect();
+      const slotRect = slot.getBoundingClientRect();
+      const stageCenterX = stageRect.left + stageRect.width * 0.56;
+      const stageCenterY = stageRect.top + stageRect.height * 0.48;
+      const slotCenterX = slotRect.left + slotRect.width / 2;
+      const slotCenterY = slotRect.top + slotRect.height / 2;
+      const deltaX = (stageCenterX - slotCenterX) * 0.32;
+      const deltaY = (stageCenterY - slotCenterY) * 0.22;
+
+      slot.style.setProperty("--focus-x", `${deltaX.toFixed(2)}px`);
+      slot.style.setProperty("--focus-y", `${deltaY.toFixed(2)}px`);
+    }
+
+    function activateSlot(slot) {
+      positionActiveSlot(slot);
+      stage.classList.add("is-focused");
+      for (const other of stage.querySelectorAll(".stamp-slot")) {
+        other.classList.toggle("is-active", other === slot);
+      }
+      slot.style.zIndex = "120";
+    }
+
+    function clearActiveSlot(slot) {
+      stage.classList.remove("is-focused");
+      for (const other of stage.querySelectorAll(".stamp-slot")) {
+        other.classList.remove("is-active");
+      }
+      slot.style.removeProperty("--focus-x");
+      slot.style.removeProperty("--focus-y");
+      slot.style.zIndex = slot.dataset.baseLayer;
+    }
+
+    function setRestState(card) {
+      card.style.setProperty("--tilt-x", "0deg");
+      card.style.setProperty("--tilt-y", "0deg");
+      card.style.setProperty("--pointer-x", "50%");
+      card.style.setProperty("--pointer-y", "50%");
+      card.style.setProperty("--glow-angle", "135deg");
+      card.style.setProperty("--shadow-x", "0px");
+      card.style.setProperty("--shadow-y", "14px");
+      card.style.setProperty("--shadow-blur", "22px");
+      card.style.setProperty("--shadow-opacity", "0.18");
+      card.style.setProperty("--hover-scale", "1");
+      card.style.setProperty("--foil-opacity", "0");
+    }
+
+    function handleMove(event) {
+      const card = event.currentTarget;
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width;
+      const y = (event.clientY - rect.top) / rect.height;
+      const px = Math.min(Math.max(x, 0), 1);
+      const py = Math.min(Math.max(y, 0), 1);
+
+      const rotateY = (px - 0.5) * MAX_TILT * 2;
+      const rotateX = (0.5 - py) * MAX_TILT * 2;
+      const angle = 110 + px * 72 - py * 38;
+      const shadowX = rotateY * 0.7;
+      const shadowY = 16 - rotateX * 0.45;
+      const blur = 24 + Math.abs(rotateX + rotateY) * 0.45;
+      const opacity = 0.16 + Math.abs(rotateX + rotateY) * 0.006;
+      const foilOpacity = 0.28 + (1 - Math.abs(px - 0.5) * 0.9) * 0.12 + (1 - Math.abs(py - 0.5) * 0.7) * 0.08;
+
+      card.style.setProperty("--tilt-x", `${rotateX.toFixed(2)}deg`);
+      card.style.setProperty("--tilt-y", `${rotateY.toFixed(2)}deg`);
+      card.style.setProperty("--pointer-x", `${(px * 100).toFixed(2)}%`);
+      card.style.setProperty("--pointer-y", `${(py * 100).toFixed(2)}%`);
+      card.style.setProperty("--glow-angle", `${angle.toFixed(2)}deg`);
+      card.style.setProperty("--shadow-x", `${shadowX.toFixed(2)}px`);
+      card.style.setProperty("--shadow-y", `${shadowY.toFixed(2)}px`);
+      card.style.setProperty("--shadow-blur", `${blur.toFixed(2)}px`);
+      card.style.setProperty("--shadow-opacity", opacity.toFixed(3));
+      card.style.setProperty("--hover-scale", "1.5");
+      card.style.setProperty("--foil-opacity", foilOpacity.toFixed(3));
+    }
+
+    for (const stamp of stamps) {
+      const slot = document.createElement("section");
+      slot.className = "stamp-slot";
+      slot.dataset.baseLayer = String(stamp.layer);
+      slot.style.setProperty("--left", stamp.left);
+      slot.style.setProperty("--top", stamp.top);
+      slot.style.setProperty("--size", stamp.size);
+      slot.style.setProperty("--pull-x", stamp.pullX);
+      slot.style.setProperty("--pull-y", stamp.pullY);
+      slot.style.setProperty("--dx", stamp.dx);
+      slot.style.setProperty("--dy", stamp.dy);
+      slot.style.setProperty("--rotate", stamp.rotate);
+      slot.style.setProperty("--duration", stamp.duration);
+      slot.style.setProperty("--delay", stamp.delay);
+      slot.style.setProperty("--layer", stamp.layer);
+
+      const drift = document.createElement("div");
+      drift.className = "stamp-drift";
+
+      const button = document.createElement("button");
+      button.className = "stamp-card";
+      button.type = "button";
+      button.setAttribute("aria-label", stamp.name);
+
+      const bw = document.createElement("img");
+      bw.className = "bw";
+      bw.src = `./pic/BW/${stamp.name}.png`;
+      bw.alt = "";
+
+      const color = document.createElement("img");
+      color.className = "color";
+      color.src = `./pic/color/${stamp.name}.png`;
+      color.alt = "";
+
+      const foil = document.createElement("div");
+      foil.className = "foil";
+      foil.style.setProperty("--foil-mask", `url("./pic/BW/${stamp.name}.png")`);
+
+      button.append(bw, color, foil);
+      setRestState(button);
+      button.addEventListener("mouseenter", () => {
+        activateSlot(slot);
+      });
+      button.addEventListener("mousemove", handleMove);
+      button.addEventListener("mouseleave", () => {
+        setRestState(button);
+        clearActiveSlot(slot);
+      });
+      button.addEventListener("blur", () => {
+        setRestState(button);
+        clearActiveSlot(slot);
+      });
+      button.addEventListener("focus", () => {
+        activateSlot(slot);
+        button.style.setProperty("--hover-scale", "1.5");
+        button.style.setProperty("--foil-opacity", "0.36");
+      });
+      drift.append(button);
+      slot.append(drift);
+      stage.append(slot);
+    }
+  </script>
+</body>
+</html>

@@ -1,8 +1,26 @@
+/* ============================================
+   Typography Specification — Josefin Sans
+   ============================================
+   Page:
+     Main Title   — Bold     84pt
+     Subtitle     — Bold     45pt
+     Body Text    — Regular   20pt
+     Footnote     — Regular   18pt
+   Sidebar:
+     Subtitle     — Regular   18pt
+   ============================================ */
+
 :root {
-  --bg: #f5efed;
-  --text: #05080f;
-  --muted: rgba(5, 8, 15, 0.4);
-  --page-gap: 1rem;
+  --fs-main-title: 66pt;
+  --fs-subtitle: 45pt;
+  --fs-body: 20pt;
+  --fs-footnote: 18pt;
+  --fs-sidebar-title: 36pt;
+  --fs-sidebar-subtitle: 18pt;
+
+  --back: #f5efed;
+  --ink: #05080f;
+  --ink-muted: rgba(5, 8, 15, 0.4);
 }
 
 * {
@@ -39,7 +57,6 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  container-type: inline-size;
   padding: clamp(1rem, 2vw, 2rem);
   overflow: hidden;
   transition: opacity 160ms ease;
@@ -95,12 +112,11 @@ body {
 
 .main-title {
   margin: 0;
-  font-size: clamp(2rem, min(7vw, 18cqw), 7rem);
+  font-size: clamp(2rem, 8vw, 144pt);
   font-weight: 700;
   line-height: 0.88;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  text-wrap: balance;
   transition: font-size 120ms ease, transform 120ms ease, opacity 120ms ease;
 }
 
@@ -133,7 +149,7 @@ body {
 }
 
 .panel.active .main-title {
-  font-size: clamp(2.35rem, min(7.8vw, 20cqw), 7.75rem);
+  font-size: clamp(2.4rem, 9vw, 170pt);
   transform: scale(1.01);
 }
 
@@ -156,7 +172,7 @@ body {
 }
 
 .layout.has-focus .panel:not(.focused) .main-title {
-  font-size: clamp(1.45rem, min(4.2vw, 11cqw), 4.5rem);
+  font-size: clamp(1.5rem, 4.8vw, 72pt);
   opacity: 0.72;
 }
 
@@ -172,7 +188,7 @@ body {
 }
 
 .layout.has-focus .panel.focused .main-title {
-  font-size: clamp(2.5rem, min(8.2vw, 22cqw), 8.5rem);
+  font-size: clamp(2.8rem, 10vw, 180pt);
 }
 
 .layout.has-focus .panel.focused .subtitle {
@@ -194,7 +210,7 @@ body {
     min-height: 100vh;
     height: auto;
     grid-template-columns: 1fr;
-    grid-template-rows: none;
+    grid-template-rows: repeat(3, minmax(28vh, auto));
   }
 
   .panel[data-panel] {
@@ -202,42 +218,7 @@ body {
     grid-row: auto;
   }
 
-  .panel {
-    justify-content: flex-start;
-    padding: 1.1rem 1rem;
-  }
-
-  .main-title,
-  .panel.active .main-title,
-  .layout.has-focus .panel:not(.focused) .main-title,
-  .layout.has-focus .panel.focused .main-title {
-    font-size: clamp(2rem, 11vw, 4.5rem);
-    transform: none;
-    opacity: 1;
-  }
-
-  .panel-body {
-    display: none;
-    padding-top: 0.75rem;
-  }
-
-  .panel.expanded .panel-body {
-    display: grid;
-  }
-
-  .subtitle,
-  .detail,
-  .panel.active .subtitle,
-  .panel.active .detail,
-  .layout.has-focus .panel.focused .subtitle,
-  .layout.has-focus .panel.focused .detail {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-
   .detail {
     max-width: none;
-    font-size: 1rem;
   }
 }
