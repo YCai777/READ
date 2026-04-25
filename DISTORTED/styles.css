@@ -314,6 +314,10 @@ body {
     --fs-sidebar-subtitle: 10.8pt;
   }
 
+  body {
+    position: relative;
+  }
+
   .sidebar {
     width: 160px;
     padding: 24px 16px;
@@ -334,8 +338,16 @@ body {
   }
 
   .section--hero {
-    padding: 88px 20px 72px 20px;
-    gap: 28px;
+    position: relative;
+    z-index: 1;
+    padding: 16px 20px 72px 20px;
+    gap: 24px;
+  }
+
+  .hero__meta,
+  .essay {
+    position: relative;
+    z-index: 1;
   }
 
   .essay {
@@ -343,10 +355,12 @@ body {
   }
 
   .stamp-cluster {
-    width: min(34vw, 160px);
-    left: 12px;
-    bottom: 12px;
-    opacity: 0.68;
+    position: absolute;
+    width: min(58vw, 250px);
+    left: 0;
+    top: min(48vh, 360px);
+    opacity: 0.24;
+    z-index: 0;
   }
 }
 

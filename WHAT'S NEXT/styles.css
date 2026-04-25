@@ -207,15 +207,21 @@ body {
   }
 
   .layout {
-    min-height: 100vh;
+    min-height: 100dvh;
     height: auto;
+    gap: 0.75rem;
+    padding: 0.75rem;
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(3, minmax(28vh, auto));
+    grid-template-rows: repeat(3, minmax(34dvh, auto));
   }
 
   .panel[data-panel] {
     grid-column: 1;
     grid-row: auto;
+  }
+
+  .panel {
+    padding: 1.1rem 1rem;
   }
 
   .detail {

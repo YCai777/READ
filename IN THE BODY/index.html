@@ -128,6 +128,51 @@
     }
   }
 
+  @media (max-width: 600px) {
+    #canvas {
+      z-index: 3;
+    }
+
+    .orb-media {
+      width: 132px;
+      height: 132px;
+      z-index: 1;
+      opacity: 0.82;
+    }
+
+    .stamp-rack {
+      top: 18px;
+      right: -4px;
+      width: 286px;
+      height: 304px;
+      opacity: 0.22;
+      z-index: 1;
+    }
+
+    .stamp-rack img:nth-child(1) {
+      right: 96px;
+      height: 104px;
+    }
+
+    .stamp-rack img:nth-child(2) {
+      top: 20px;
+      right: 0;
+      height: 96px;
+    }
+
+    .stamp-rack img:nth-child(3) {
+      top: 126px;
+      right: 36px;
+      height: 108px;
+    }
+
+    .stamp-rack img:nth-child(4) {
+      top: 212px;
+      right: 112px;
+      height: 116px;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -144,17 +189,20 @@
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const FONT_BODY  = '400 20px "Josefin Sans", sans-serif';
-const FONT_HEAD  = '700 67px "Josefin Sans", sans-serif';
-const FONT_DECK  = '400 26px "Josefin Sans", sans-serif';
-const DECK_LINE_H = 30;
-const LINE_H     = 32;
-const MARGIN     = 48;
-const COL_GAP    = 28;
-const ORB_R      = 104;
-const ORB_REPEL  = 320;
-const ORB_PAD    = 14;
-const MIN_LINE_W = 42;
+let FONT_BODY  = '400 20px "Josefin Sans", sans-serif';
+let FONT_HEAD  = '700 67px "Josefin Sans", sans-serif';
+let FONT_DECK  = '400 26px "Josefin Sans", sans-serif';
+let HEAD_LINE_H = 64;
+let DECK_LINE_H = 30;
+let LINE_H     = 32;
+let MARGIN     = 48;
+let COL_GAP    = 28;
+let ORB_R      = 104;
+let ORB_REPEL  = 320;
+let ORB_PAD    = 14;
+let MIN_LINE_W = 42;
+let isCompactLayout = false;
+let lastCompactLayout = null;
 
 const BODY_TEXT = `Face-to-face conversation is multi-layered. Gestures shape emphasis. Eye contact regulates attention. Posture reveals confidence or hesitation. Distance signals intimacy or respect. Paralanguage - tone, rhythm, pacing - colors every sentence.
 
@@ -212,11 +260,48 @@ var prepBody = prepare(BODY_TEXT, FONT_BODY);
 var prepHead = prepare(HEAD_TEXT, FONT_HEAD);
 var prepDeck = prepare(DECK_TEXT, FONT_DECK);
 
+function applyMetrics() {
+  isCompactLayout = window.innerWidth <= 600;
+
+  if (isCompactLayout) {
+    FONT_BODY = '400 15px "Josefin Sans", sans-serif';
+    FONT_HEAD = '700 42px "Josefin Sans", sans-serif';
+    FONT_DECK = '400 15px "Josefin Sans", sans-serif';
+    HEAD_LINE_H = 38;
+    DECK_LINE_H = 19;
+    LINE_H = 21;
+    MARGIN = 20;
+    COL_GAP = 16;
+    ORB_R = 28;
+    ORB_REPEL = 40;
+    ORB_PAD = 0;
+    MIN_LINE_W = 148;
+    return;
+  }
+
+  FONT_BODY = '400 20px "Josefin Sans", sans-serif';
+  FONT_HEAD = '700 67px "Josefin Sans", sans-serif';
+  FONT_DECK = '400 26px "Josefin Sans", sans-serif';
+  HEAD_LINE_H = 64;
+  DECK_LINE_H = 30;
+  LINE_H = 32;
+  MARGIN = 48;
+  COL_GAP = 28;
+  ORB_R = 104;
+  ORB_REPEL = 320;
+  ORB_PAD = 14;
+  MIN_LINE_W = 42;
+}
+
 // ─── RESIZE ──────────────────────────────────────────────────────────────────
 function resize() {
   var dpr = window.devicePixelRatio || 1;
   W = window.innerWidth;
   H = window.innerHeight;
+  applyMetrics();
+  prepBody.font = FONT_BODY;
+  prepHead.font = FONT_HEAD;
+  prepDeck.font = FONT_DECK;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   canvas.style.width  = W + 'px';
@@ -224,14 +309,35 @@ function resize() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  if (orbs[0].x === 0) {
+
+  for (var i = 0; i < orbs.length; i++) {
+    orbs[i].r = ORB_R;
+  }
+
+  if (orbs[0].x === 0 || lastCompactLayout !== isCompactLayout) {
+    if (isCompactLayout) {
+      orbs[0].x = W * 0.08;     orbs[0].y = H * 0.28;
+      orbs[1].x = W * 0.92;     orbs[1].y = H * 0.36;
+    } else {
     orbs[0].x = W * 0.35; orbs[0].y = H * 0.38;
     orbs[1].x = W * 0.65; orbs[1].y = H * 0.55;
+    }
   }
+
+  for (var j = 0; j < orbs.length; j++) {
+    orbs[j].x = Math.max(orbs[j].r, Math.min(W - orbs[j].r, orbs[j].x));
+    orbs[j].y = Math.max(orbs[j].r, Math.min(H - orbs[j].r, orbs[j].y));
+  }
+
+  lastCompactLayout = isCompactLayout;
 }
 
 // ─── COLUMN LAYOUT ───────────────────────────────────────────────────────────
 function computeColumns() {
+  if (isCompactLayout) {
+    return [{ x: MARGIN, width: W - MARGIN * 2 }];
+  }
+
   var contentW = W - MARGIN * 2;
   var baseColW = (contentW - COL_GAP) / 2;
   var split = MARGIN + baseColW + COL_GAP * 0.5;
@@ -305,26 +411,34 @@ function getLineIntervals(cy, colX, colW) {
 // ─── DRAW ────────────────────────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#f5efed';
-  ctx.fillRect(0, 0, W, H);
+  if (!isCompactLayout) {
+    ctx.fillStyle = '#f5efed';
+    ctx.fillRect(0, 0, W, H);
+  }
 
   var cols = computeColumns();
-  var headerY = 36;
+  var headerY = isCompactLayout ? 38 : 36;
   var headerX = MARGIN;
 
   // Headline
-  var hline = layoutNextLine(prepHead, { wordIndex: 0 }, W - MARGIN * 2);
-  if (hline) {
+  var headCursor = { wordIndex: 0 };
+  var headlineY = headerY + (isCompactLayout ? 40 : 64);
+  var headlineBottom = headlineY;
+  while (true) {
+    var hline = layoutNextLine(prepHead, headCursor, W - MARGIN * 2);
+    if (!hline) break;
     ctx.font = FONT_HEAD;
     ctx.fillStyle = '#05080f';
-    ctx.fillText(hline.text, headerX - 5, headerY + 64
-    );
+    ctx.fillText(hline.text, headerX - (isCompactLayout ? 1 : 5), headlineY);
+    headCursor = hline.end;
+    headlineBottom = headlineY;
+    headlineY += HEAD_LINE_H;
   }
 
   // Deck
   var deckCursor = { wordIndex: 0 };
-  var deckY = headerY + 104;
-  var deckMaxW = Math.min(560, W - MARGIN * 2);
+  var deckY = headlineBottom + (isCompactLayout ? 22 : 40);
+  var deckMaxW = isCompactLayout ? Math.min(196, W - MARGIN * 2 - 12) : Math.min(560, W - MARGIN * 2);
   while (true) {
     var dline = layoutNextLine(prepDeck, deckCursor, deckMaxW);
     if (!dline) break;
@@ -335,8 +449,8 @@ function draw() {
     deckY += DECK_LINE_H;
   }
 
-  var bodyTop = Math.max(deckY + 22, H - 340);
-  var bodyH = H - bodyTop - 48;
+  var bodyTop = isCompactLayout ? Math.max(deckY + 24, H - 428) : Math.max(deckY + 22, H - 340);
+  var bodyH = H - bodyTop - (isCompactLayout ? 10 : 48);
 
   ctx.font = FONT_BODY;
   ctx.fillStyle = '#05080f';

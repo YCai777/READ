@@ -14,6 +14,7 @@
     <style>
       :root {
         --content-sidebar-clearance: 340px;
+        --content-section-min-height: 100vh;
       }
 
       .content {
@@ -21,7 +22,7 @@
       }
 
       .content__section {
-        min-height: 100vh;
+        min-height: var(--content-section-min-height);
         padding: 0;
         display: flex;
         justify-content: flex-start;
@@ -30,12 +31,13 @@
       .content__panel {
         width: max(0px, calc(100vw - var(--content-sidebar-clearance)));
         max-width: max(0px, calc(100vw - var(--content-sidebar-clearance)));
-        min-height: 100vh;
+        min-height: var(--content-section-min-height);
       }
 
       .content__iframe {
         width: 100%;
-        height: 100vh;
+        min-height: var(--content-section-min-height);
+        height: var(--content-section-min-height);
         border: none;
         display: block;
         pointer-events: auto;
@@ -72,6 +74,19 @@
         font-weight: 700;
         line-height: 1;
         letter-spacing: 0.08em;
+      }
+
+      @media (max-width: 900px) {
+        :root {
+          --content-section-min-height: 100dvh;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .content__panel {
+          width: 100vw;
+          max-width: 100vw;
+        }
       }
 
     </style>
@@ -224,6 +239,7 @@
           document.querySelectorAll(".sidebar__item")
         );
         const sections = Array.from(document.querySelectorAll(".content__section"));
+        const iframes = Array.from(document.querySelectorAll(".content__iframe"));
         const distortedSection = document.getElementById("section-distorted");
         const distortedIframe = distortedSection?.querySelector("iframe");
         const visibleSections = new Map();
@@ -240,6 +256,70 @@
           });
         };
 
+        const syncIframeHeight = (iframe) => {
+          const sectionId = iframe.closest(".content__section")?.id;
+          const isMobile = window.innerWidth <= 900;
+
+          if (!isMobile || sectionId === "section-distorted") {
+            iframe.style.height = "";
+            return;
+          }
+
+          const iframeDocument = iframe.contentDocument;
+          if (!iframeDocument) {
+            return;
+          }
+
+          const scrollingElement =
+            iframeDocument.scrollingElement || iframeDocument.documentElement;
+          const nextHeight = Math.max(
+            scrollingElement?.scrollHeight || 0,
+            iframeDocument.body?.scrollHeight || 0,
+            window.innerHeight
+          );
+
+          iframe.style.height = `${nextHeight}px`;
+        };
+
+        const bindResponsiveIframeHeight = (iframe) => {
+          const attach = () => {
+            const iframeDocument = iframe.contentDocument;
+            if (!iframeDocument) {
+              return;
+            }
+
+            const update = () => {
+              window.requestAnimationFrame(() => syncIframeHeight(iframe));
+            };
+
+            if (iframe.dataset.heightSyncBound !== "true") {
+              iframe.dataset.heightSyncBound = "true";
+
+              if ("ResizeObserver" in window) {
+                const observer = new ResizeObserver(update);
+                if (iframeDocument.documentElement) {
+                  observer.observe(iframeDocument.documentElement);
+                }
+                if (iframeDocument.body) {
+                  observer.observe(iframeDocument.body);
+                }
+                iframe._heightObserver = observer;
+              }
+
+              iframeDocument.addEventListener("click", update, true);
+              iframeDocument.addEventListener("transitionend", update, true);
+            }
+
+            update();
+          };
+
+          if (iframe.contentDocument?.readyState === "complete") {
+            attach();
+          } else {
+            iframe.addEventListener("load", attach, { once: true });
+          }
+        };
+
         const scrollToSection = (index) => {
           const targetSection = sections[index];
 
@@ -247,6 +327,7 @@
             return;
           }
 
+          activeSectionId = targetSection.id;
           setActiveItem(index);
           targetSection.scrollIntoView({ behavior: "smooth" });
         };
@@ -288,9 +369,9 @@
           let sidebarClearance = 340;
 
           if (window.innerWidth <= 600) {
-            sidebarClearance = isPortraitNarrowScreen ? 96 : 160;
+            sidebarClearance = 0;
           } else if (window.innerWidth <= 900) {
-            sidebarClearance = 200;
+            sidebarClearance = 176;
           }
 
           document.documentElement.style.setProperty(
@@ -300,7 +381,11 @@
         };
 
         updateContentLayout();
-        window.addEventListener("resize", updateContentLayout);
+        iframes.forEach(bindResponsiveIframeHeight);
+        window.addEventListener("resize", () => {
+          updateContentLayout();
+          iframes.forEach(syncIframeHeight);
+        });
 
         document
           .querySelector(".sidebar__list")
