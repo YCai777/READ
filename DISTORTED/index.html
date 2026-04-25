@@ -13,14 +13,9 @@
 	<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-	<div class="intro" id="intro" aria-hidden="true">
-		<div class="intro__lottie" id="intro-lottie"></div>
-	</div>
-
 	<div class="stamp-cluster" aria-hidden="true">
-		<img class="stamp stamp--eye" src="pic/STAMP-05.png" alt="" />
-		<img class="stamp stamp--nose" src="pic/STAMP-08.png" alt="" />
-		<img class="stamp stamp--lips" src="pic/STAMP-10.png" alt="" />
+		<img class="stamp stamp--03" src="STAMP-03.png" alt="" />
+		<img class="stamp stamp--11" src="STAMP-11.png" alt="" />
 	</div>
 
 	<main class="content">
@@ -43,16 +38,92 @@
 		</section>
 	</main>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js" defer></script>
-	<script src="disappear.js" defer></script>
 	<script>
 		document.addEventListener("DOMContentLoaded", () => {
-			const intro = document.getElementById("intro");
-			if (typeof initDisappearInteraction === "function") {
-				initDisappearInteraction();
-			} else if (intro) {
-				intro.classList.add("intro--done");
+			const essay = document.getElementById("text-display");
+			const paragraphs = Array.from(document.querySelectorAll(".essay .text-block"));
+
+			const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+			const smoothstep = (value) => value * value * (3 - 2 * value);
+			let isTicking = false;
+			let focusCenter = null;
+
+			const getParagraphCenters = () => {
+				const scrollTop = window.scrollY || window.pageYOffset || 0;
+				return paragraphs.map((paragraph) => {
+					const rect = paragraph.getBoundingClientRect();
+					return scrollTop + rect.top + rect.height / 2;
+				});
+			};
+
+			const updateParagraphScale = () => {
+				isTicking = false;
+
+				const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+				const paragraphCenters = getParagraphCenters();
+				const targetCenter = focusCenter ?? paragraphCenters[0] ?? 0;
+				const shrinkRange = viewportHeight * 0.72;
+
+				paragraphs.forEach((paragraph, index) => {
+					const distance = Math.abs(paragraphCenters[index] - targetCenter);
+					const progress = clamp(distance / shrinkRange, 0, 1);
+					const easedProgress = smoothstep(progress);
+					const scale = 1 - easedProgress * 0.65;
+					const leading = 1.5 - easedProgress * 0.3;
+					paragraph.style.setProperty("--paragraph-scale", scale.toFixed(3));
+					paragraph.style.setProperty("--paragraph-leading", leading.toFixed(3));
+				});
+			};
+
+			const requestParagraphScaleUpdate = () => {
+				if (isTicking) {
+					return;
+				}
+
+				isTicking = true;
+				window.requestAnimationFrame(updateParagraphScale);
+			};
+
+			const setFocusFromClientY = (clientY) => {
+				const scrollTop = window.scrollY || window.pageYOffset || 0;
+				focusCenter = scrollTop + clientY;
+				requestParagraphScaleUpdate();
+			};
+
+			if (essay) {
+				essay.addEventListener("mousemove", (event) => {
+					setFocusFromClientY(event.clientY);
+				});
+
+				essay.addEventListener("click", (event) => {
+					setFocusFromClientY(event.clientY);
+				});
+
+				essay.addEventListener(
+					"touchstart",
+					(event) => {
+						const touch = event.touches[0];
+						if (touch) {
+							setFocusFromClientY(touch.clientY);
+						}
+					},
+					{ passive: true }
+				);
+
+				essay.addEventListener(
+					"touchmove",
+					(event) => {
+						const touch = event.touches[0];
+						if (touch) {
+							setFocusFromClientY(touch.clientY);
+						}
+					},
+					{ passive: true }
+				);
 			}
+
+			updateParagraphScale();
+			window.addEventListener("resize", requestParagraphScaleUpdate);
 		});
 	</script>
 </body>

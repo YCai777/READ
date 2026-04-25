@@ -224,7 +224,11 @@
           document.querySelectorAll(".sidebar__item")
         );
         const sections = Array.from(document.querySelectorAll(".content__section"));
+        const distortedSection = document.getElementById("section-distorted");
+        const distortedIframe = distortedSection?.querySelector("iframe");
         const visibleSections = new Map();
+        let activeSectionId = sections[0]?.id ?? "";
+        let boundaryScrollLocked = false;
 
         if (!sidebarItems.length || !sections.length) {
           return;
@@ -234,6 +238,45 @@
           sidebarItems.forEach((item, itemIndex) => {
             item.classList.toggle("sidebar__item--active", itemIndex === index);
           });
+        };
+
+        const scrollToSection = (index) => {
+          const targetSection = sections[index];
+
+          if (!targetSection) {
+            return;
+          }
+
+          setActiveItem(index);
+          targetSection.scrollIntoView({ behavior: "smooth" });
+        };
+
+        const releaseBoundaryScrollLock = () => {
+          window.setTimeout(() => {
+            boundaryScrollLocked = false;
+          }, 500);
+        };
+
+        const jumpFromDistortedBoundary = (direction) => {
+          if (
+            boundaryScrollLocked ||
+            activeSectionId !== "section-distorted" ||
+            !distortedSection
+          ) {
+            return false;
+          }
+
+          const currentIndex = Number(distortedSection.dataset.sidebarIndex);
+          const targetIndex = currentIndex + direction;
+
+          if (Number.isNaN(targetIndex) || !sections[targetIndex]) {
+            return false;
+          }
+
+          boundaryScrollLocked = true;
+          scrollToSection(targetIndex);
+          releaseBoundaryScrollLock();
+          return true;
         };
 
         const updateContentLayout = () => {
@@ -275,9 +318,7 @@
               return;
             }
 
-            const targetIndex = Number(targetSection.dataset.sidebarIndex);
-            setActiveItem(targetIndex);
-            targetSection.scrollIntoView({ behavior: "smooth" });
+            scrollToSection(Number(targetSection.dataset.sidebarIndex));
           });
 
         const observer = new IntersectionObserver(
@@ -304,12 +345,91 @@
               return;
             }
 
+            activeSectionId = activeSection.id;
             setActiveItem(Number(activeSection.dataset.sidebarIndex));
           },
           { threshold: 0.5 }
         );
 
         sections.forEach((section) => observer.observe(section));
+
+        if (distortedIframe) {
+          const attachDistortedBoundaryScroll = () => {
+            const iframeWindow = distortedIframe.contentWindow;
+            const iframeDocument = iframeWindow?.document;
+            const scrollingElement =
+              iframeDocument?.scrollingElement || iframeDocument?.documentElement;
+
+            if (!iframeWindow || !scrollingElement) {
+              return;
+            }
+
+            let touchStartY = 0;
+
+            // Let the iframe consume its own scroll until it reaches a boundary.
+            iframeWindow.addEventListener(
+              "wheel",
+              (event) => {
+                const maxScroll =
+                  scrollingElement.scrollHeight - scrollingElement.clientHeight;
+                const isAtTop = scrollingElement.scrollTop <= 0;
+                const isAtBottom =
+                  scrollingElement.scrollTop >= Math.max(maxScroll - 1, 0);
+
+                if (event.deltaY < 0 && isAtTop && jumpFromDistortedBoundary(-1)) {
+                  event.preventDefault();
+                } else if (
+                  event.deltaY > 0 &&
+                  isAtBottom &&
+                  jumpFromDistortedBoundary(1)
+                ) {
+                  event.preventDefault();
+                }
+              },
+              { passive: false }
+            );
+
+            iframeWindow.addEventListener(
+              "touchstart",
+              (event) => {
+                touchStartY = event.touches[0]?.clientY ?? 0;
+              },
+              { passive: true }
+            );
+
+            iframeWindow.addEventListener(
+              "touchmove",
+              (event) => {
+                const touchY = event.touches[0]?.clientY ?? touchStartY;
+                const touchDelta = touchStartY - touchY;
+                const maxScroll =
+                  scrollingElement.scrollHeight - scrollingElement.clientHeight;
+                const isAtTop = scrollingElement.scrollTop <= 0;
+                const isAtBottom =
+                  scrollingElement.scrollTop >= Math.max(maxScroll - 1, 0);
+
+                if (touchDelta < -12 && isAtTop && jumpFromDistortedBoundary(-1)) {
+                  event.preventDefault();
+                } else if (
+                  touchDelta > 12 &&
+                  isAtBottom &&
+                  jumpFromDistortedBoundary(1)
+                ) {
+                  event.preventDefault();
+                }
+              },
+              { passive: false }
+            );
+          };
+
+          if (distortedIframe.contentDocument?.readyState === "complete") {
+            attachDistortedBoundaryScroll();
+          } else {
+            distortedIframe.addEventListener("load", attachDistortedBoundaryScroll, {
+              once: true,
+            });
+          }
+        }
       });
     </script>
   </body>

@@ -147,6 +147,7 @@
 const FONT_BODY  = '400 20px "Josefin Sans", sans-serif';
 const FONT_HEAD  = '700 67px "Josefin Sans", sans-serif';
 const FONT_DECK  = '400 26px "Josefin Sans", sans-serif';
+const DECK_LINE_H = 30;
 const LINE_H     = 32;
 const MARGIN     = 48;
 const COL_GAP    = 28;
@@ -321,14 +322,20 @@ function draw() {
   }
 
   // Deck
-  var dline = layoutNextLine(prepDeck, { wordIndex: 0 }, W - MARGIN * 2);
-  if (dline) {
+  var deckCursor = { wordIndex: 0 };
+  var deckY = headerY + 104;
+  var deckMaxW = Math.min(560, W - MARGIN * 2);
+  while (true) {
+    var dline = layoutNextLine(prepDeck, deckCursor, deckMaxW);
+    if (!dline) break;
     ctx.font = FONT_DECK;
     ctx.fillStyle = 'rgba(5, 8, 15, 0.4)';
-    ctx.fillText(dline.text, headerX, headerY + 104);
+    ctx.fillText(dline.text, headerX, deckY);
+    deckCursor = dline.end;
+    deckY += DECK_LINE_H;
   }
 
-  var bodyTop = Math.max(headerY + 150, H - 340);
+  var bodyTop = Math.max(deckY + 22, H - 340);
   var bodyH = H - bodyTop - 48;
 
   ctx.font = FONT_BODY;
